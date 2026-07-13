@@ -5,33 +5,27 @@ require("dotenv").config();
 
 const app = express();
 
-// Configuración de CORS para permitir peticiones del test runner
+// Middleware básico
 app.use(cors());
-
-// Servir archivos estáticos
 app.use("/public", express.static(process.cwd() + "/public"));
 
-// Ruta de inicio
+// Ruta de la interfaz
 app.get("/", (req, res) => {
   res.sendFile(process.cwd() + "/views/index.html");
 });
 
-// Configurar multer para almacenar en memoria
-const upload = multer({
-  storage: multer.memoryStorage()
-});
+// Configuración de multer en memoria
+const upload = multer({ storage: multer.memoryStorage() });
 
 // API de Metadatos de Archivo
-// Se añade el middleware de upload y se fuerzan los headers para evitar bloqueos
+// Se utiliza 'upfile' como nombre del campo para cumplir el test #3
 app.post("/api/fileanalyse", upload.single("upfile"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  // Fuerza los headers para que el test runner de FCC no bloquee la respuesta
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-
+  // Respuesta directa en formato JSON puro
+  // El middleware cors() ya gestiona los headers necesarios automáticamente
   res.json({
     name: req.file.originalname,
     type: req.file.mimetype,
@@ -39,8 +33,7 @@ app.post("/api/fileanalyse", upload.single("upfile"), (req, res) => {
   });
 });
 
-// Iniciar servidor
 const port = process.env.PORT || 3000;
-const listener = app.listen(port, () => {
-  console.log(`Your app is listening on port ${listener.address().port}`);
+app.listen(port, () => {
+  console.log(`Your app is listening on port ${port}`);
 });
